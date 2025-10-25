@@ -24,10 +24,19 @@ fn main(){
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.filename)?;
 
-    for line in search(&config.query, &contents) {
+    let ignore_case = env::var("IGNORE_CASE").is_ok();
+
+    let results =  if ignore_case {
+        search_case_insensitive(&config.query, &contents)
+    }
+    else {
+        search(&config.query, &contents)
+    };
+
+
+    for line in results {
         println!("{}", line);
     }
-
     Ok(())
 }
 
@@ -63,4 +72,15 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     results
 }
 
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let query = query.to_lowercase();
+
+    let mut results = Vec::new();
+    for line in contents.lines(){
+        if line.contains(&query){
+            results.push(line);
+        }
+    }
+    results
+}
 
